@@ -2,6 +2,7 @@ import io.github.morgaroth.sbt.SbtSonatypeUtils
 import sbt._
 import Keys._
 import sbtrelease.ReleasePlugin._
+import xerial.sbt.Sonatype.sonatypeSettings
 
 object Build extends Build {
   val basicSettings = Seq(
@@ -12,7 +13,8 @@ object Build extends Build {
     licenses := Seq(("Apache License, Version 2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))),
     homepage := Some(new URL("https://github.com/thenewmotion/akka-rabbitmq")),
     scalacOptions := Seq("-encoding", "UTF-8", "-unchecked", "-deprecation", "-feature"),
-    libraryDependencies ++= Seq(akkaActor, amqpClient, akkaTestkit, specs2JUnit, specs2Mock))
+    libraryDependencies ++= Seq(akkaActor, amqpClient, akkaTestkit, specs2JUnit, specs2Mock)
+  ) ++ sonatypeSettings
 
   val akkaVersion = "2.3.7"
 
