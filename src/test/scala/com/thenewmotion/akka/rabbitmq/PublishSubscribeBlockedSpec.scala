@@ -3,8 +3,9 @@ package com.thenewmotion.akka.rabbitmq
 import java.util.concurrent.TimeUnit
 
 import akka.actor.ActorRef
+import akka.testkit.TestProbe
 import com.thenewmotion.akka.rabbitmq.BlockedConnectionHandler.{ QueueBlocked, QueueUnblocked }
-import com.thenewmotion.akka.rabbitmq.ChannelActor.{ ConnectionIsBlocked, MessageQueued, SuccessfullyQueued }
+import com.thenewmotion.akka.rabbitmq.ChannelActor.{ ConnectionIsBlocked, SuccessfullyQueued }
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -36,7 +37,7 @@ class PublishSubscribeBlockedSpec extends ActorSpec {
         channel.queueBind(queue, exchange, "")
         val consumer = new DefaultConsumer(channel) {
           override def handleDelivery(consumerTag: String, envelope: Envelope, properties: BasicProperties, body: Array[Byte]) {
-            // drop messages, we are currently testing queuing, messaging is tested in separate test
+            messageCollector.ref ! fromBytes(body)
           }
         }
         channel.basicConsume(queue, true, consumer)
@@ -46,23 +47,23 @@ class PublishSubscribeBlockedSpec extends ActorSpec {
       val ChannelCreated(subscriber) = expectMsgType[ChannelCreated]
 
       val msgs = 1 to 33
-      val accepted = msgs.map { x =>
+      msgs.map { x =>
         publisher ! ChannelMessage(_.basicPublish(exchange, "", null, toBytes(x)), dropIfNoChannel = false)
-        SuccessfullyQueued
+        expectMsg(SuccessfullyQueued)
       }
       connection ! QueueBlocked("test block")
-      val blocked = msgs.map { x =>
+      Thread.sleep(10)
+      msgs.map { x =>
         publisher ! ChannelMessage(_.basicPublish(exchange, "", null, toBytes(x)), dropIfNoChannel = false)
-        ConnectionIsBlocked
+        expectMsg(ConnectionIsBlocked)
       }
       connection ! QueueUnblocked
-      val unlocked = msgs.map { x =>
+      Thread.sleep(10)
+      msgs.map { x =>
         publisher ! ChannelMessage(_.basicPublish(exchange, "", null, toBytes(x)), dropIfNoChannel = false)
-        SuccessfullyQueued
+        expectMsg(SuccessfullyQueued)
       }
-
-      private val flatten: List[MessageQueued] = List(accepted, blocked, unlocked).flatten
-      expectMsgAllOf(FiniteDuration(100, TimeUnit.SECONDS), flatten: _*)
+      messageCollector.expectMsgAllOf(FiniteDuration(200, TimeUnit.SECONDS), List(msgs, msgs).flatten: _*)
 
       def fromBytes(x: Array[Byte]) = new String(x, "UTF-8").toLong
 
@@ -71,5 +72,7 @@ class PublishSubscribeBlockedSpec extends ActorSpec {
 
   }
 
-  private abstract class TestScope extends ActorScope
+  private abstract class TestScope extends ActorScope {
+    val messageCollector = TestProbe()
+  }
 }
