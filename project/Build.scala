@@ -1,3 +1,4 @@
+import io.github.morgaroth.sbt.SbtSonatypeUtils
 import sbt._
 import Keys._
 import sbtrelease.ReleasePlugin._
@@ -5,9 +6,9 @@ import sbtrelease.ReleasePlugin._
 object Build extends Build {
   val basicSettings = Seq(
     name := "akka-rabbitmq",
-    organization := "com.thenewmotion.akka",
+    organization := "io.github.morgaroth",
     scalaVersion := "2.10.4",
-    crossScalaVersions := Seq("2.10.4", "2.11.4"),
+    crossScalaVersions := Seq("2.10.4", "2.11.6"),
     licenses := Seq(("Apache License, Version 2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))),
     homepage := Some(new URL("https://github.com/thenewmotion/akka-rabbitmq")),
     scalacOptions := Seq("-encoding", "UTF-8", "-unchecked", "-deprecation", "-feature"),
@@ -24,5 +25,5 @@ object Build extends Build {
   val root = Project(
     "akka-rabbitmq",
     file("."),
-    settings = basicSettings ++ Defaults.defaultSettings ++ releaseSettings ++ Publish.settings ++ Format.settings)
+    settings = basicSettings ++ Defaults.defaultSettings ++ releaseSettings ++ Publish.settings ++ Format.settings).enablePlugins(SbtSonatypeUtils)
 }
