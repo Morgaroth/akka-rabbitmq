@@ -11,7 +11,7 @@ object Build extends Build {
     scalaVersion := "2.10.4",
     crossScalaVersions := Seq("2.10.4", "2.11.6"),
     licenses := Seq(("Apache License, Version 2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))),
-    homepage := Some(new URL("https://github.com/thenewmotion/akka-rabbitmq")),
+//    homepage := Some(new URL("https://github.com/thenewmotion/akka-rabbitmq")),
     scalacOptions := Seq("-encoding", "UTF-8", "-unchecked", "-deprecation", "-feature"),
     libraryDependencies ++= Seq(akkaActor, amqpClient, akkaTestkit, specs2JUnit, specs2Mock)
   ) ++ sonatypeSettings
